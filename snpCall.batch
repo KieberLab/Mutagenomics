@@ -1,0 +1,48 @@
+#!/usr/bin
+
+# run this in the folder above where the data files are so it only has to go down
+
+BACKGROUND=wt.gatk.snps.vcf
+ALLELERATIOHET=0.3
+ALLELERATIOHOM=0.7
+PIPELINE=gatk
+FILELIST=(filtered/*)
+
+Rscript backgroundSNPscreen.R $BACKGROUND $ALLELERATIOHET $ALLELERATIOHOM $PIPELINE
+# Expects folder labeled "filtered" which contains mutant files
+
+################# HOMOZYGOUS ################################
+
+FILELISTHOM=(mutsnps.hom/*)
+num=${#FILELISTHOM[@]}
+num=$(($num-1))
+
+for number in $(seq 0 $num)
+do
+	FILENAME=$(basename "${FILELISTHOM[$number]}")
+	echo starting sample $FILENAME
+	java -jar /C/Users/hodgens/snpeff/snpEff/snpEff.jar Arabidopsis_thaliana mutsnps.hom/$FILENAME -s output.hom/$FILENAME.summary.html > output.hom/$FILENAME.ann
+done
+
+sed -i "1d" output.hom/*.txt
+sed -i  "1s/^.//" output.hom/*.txt
+rm output.hom/sed*
+
+################# HETEROZYGOUS ################################
+FILELISTHET=(mutsnps.het/*)
+num=${#FILELISTHET[@]}
+num=$(($num-1))
+
+for number in $(seq 0 $num)
+do
+	FILENAME=$(basename "${FILELISTHET[$number]}")
+	echo starting sample $FILENAME
+	java -jar /C/Users/hodgens/snpeff/snpEff/snpEff.jar Arabidopsis_thaliana mutsnps.het/$FILENAME -s output.het/$FILENAME.summary.html > output.het/$FILENAME.ann
+done
+
+sed -i "1d" output.het/*.txt
+sed -i  "1s/^.//" output.het/*.txt
+rm output.het/sed*
+
+
+echo done

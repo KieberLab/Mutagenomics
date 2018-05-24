@@ -1,0 +1,34 @@
+#!/usr/bin
+
+# run this in the folder above where the data files are so it only has to go down
+
+# Before running this, you should examine the snpEff output to determine which lines you need to remove from the analysis because they have SNPs in genes you already expect to be causative.
+#####################Initialize Variables############################
+# Leave a single capital X in BADLINES if you don't want to cut anything out
+BADLINES="mut1 mut2 mut4 mut10 mut11 mut12 mut14 mut16 mut17 mut18 mut19 mut20 mut23 mut24 mut26 mut27 mut34 mut35 mut36 mut40 mut41 mut44 mut47 mut48 mut49 mut56 mut60 mut61 mut62"
+HETFOLDER=output.het
+HETSHARED=Moderate.linesRemoved.shared.txt
+HETFULL=Moderate.linesRemoved.full.txt
+HOMFOLDER=output.hom
+HOMSHARED=Moderate.linesRemoved.shared.txt
+HOMFULL=Moderate.linesRemoved.full.txt
+
+if [ "$BADLINES" == "X" ]
+then
+	HETSHARED=Moderate.shared.txt
+	HETFULL=Moderate.full.txt
+	HOMSHARED=Moderate.shared.txt
+	HOMFULL=Moderate.full.txt
+fi
+
+#######################Process Data#######################
+echo making graph for hets
+Rscript ./makeGraph.R output.het $BADLINES
+
+echo making graph for homs
+Rscript ./makeGraph.R output.hom $BADLINES
+
+echo making comparison sheet
+Rscript ./makeFilterComparisonSheet.R $HETFOLDER $HETSHARED $HETFULL $HOMFOLDER $HOMSHARED $HOMFULL
+
+echo done
