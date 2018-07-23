@@ -1,7 +1,5 @@
 #!/usr/bin
 
-# run this in the folder above where the data files are so it only has to go down
-
 BACKGROUND=wt.gatk.snps.vcf
 ALLELERATIOHET=0.3
 ALLELERATIOHOM=0.7
