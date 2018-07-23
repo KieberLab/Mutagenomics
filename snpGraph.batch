@@ -6,6 +6,8 @@
 
 ##################### Lines to Avoid ############################
 # Leave a single capital X in BADLINES if you don't want to cut anything out
+# if you want to cut lines out, separate the lines by spaces and write the exact names all in the same set of quotes
+# ex: BADLINES="mut1 mut2 mut3"
 BADLINES="X"
 
 
