@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --array=0-33
+#SBATCH --job-name=mutscreen.srt
+#SBATCH --mem=16000
+module add samtools
+
+# this is just for sorting bam files
+
+FILES=(/proj/kieberlb/users/hodgens/mutscreen/aligned.bam/*)
+
+FILENAME=$(basename ${FILES[$SLURM_ARRAY_TASK_ID]})
+
+echo $FILENAME
+
+samtools sort -o aligned.srt.bam/$FILENAME.srt aligned.bam/$FILENAME
+
+echo done

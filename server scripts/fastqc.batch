@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH --array=0-30
+#SBATCH --output=slurmOut/slurm_%A_%a.out
+
+# For running fastqc on all my samples
+
+module add fastqc
+
+FILES=(./aligned/*)
+FILENAME=${FILES[$SLURM_ARRAY_TASK_ID]}
+
+echo $FILENAME
+
+echo starting fastqc
+
+fastqc -o ./fastqc/ -f sam $FILENAME
+
+echo done

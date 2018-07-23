@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --array=0-32
+#SBATCH --job-name=mutscreen.srt
+#SBATCH --mem=16000
+module add samtools
+
+# this is just for indexing
+
+FILES=(/proj/kieberlb/users/hodgens/mutscreen/aligned.srt.bam/*)
+
+FILENAME=$(basename ${FILES[$SLURM_ARRAY_TASK_ID]})
+
+echo $FILENAME
+
+samtools index aligned.srt.bam/$FILENAME
+
+echo done

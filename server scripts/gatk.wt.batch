@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH --mem=25000
+#SBATCH -t 12000
+#SBATCH --output=gatkout/slurm_%A_%a.out
+
+module add gatk
+module add picard
+
+# WT calling
+echo sorting
+java -jar /nas/longleaf/apps/picard/2.10.3/picard-2.10.3/picard.jar SortSam I=aligned.srt.bam/wt.merge.picard.bam O=aligned.srt.bam/wt.srt.picard.bam SO=coordinate
+
+echo adding read group header
+java -jar /nas/longleaf/apps/picard/2.10.3/picard-2.10.3/picard.jar AddOrReplaceReadGroups I=WTmerge/wt.merge.sort  O=gatkWT/wt.merge.sort RGID=mutscreen.lane1 RGLB=wt RGPL=illumina RGPU=dunno RGSM=wt
+
+echo build bam index
+java -jar /nas/longleaf/apps/picard/2.10.3/picard-2.10.3/picard.jar BuildBamIndex I=gatkWT/wt.merge.sort
+
+echo running haplotype caller
+gatk -T HaplotypeCaller -R /proj/seq/data/TAIR10_NCBI/Sequence/WholeGenomeFasta/genome.fa -I gatkWT/wt.merge.sort.bam  -o gatkWT/wt.merge.sort.vcf --pcr_indel_model NONE
+
+echo selecting variants
+gatk -T SelectVariants -R /proj/seq/data/TAIR10_NCBI/Sequence/WholeGenomeFasta/genome.fa -V gatkWT/wt.merge.sort.vcf -selectType SNP -o gatkWT/wt.merge.sort.snps
+
+echo filtering variants
+gatk -T VariantFiltration -R /proj/seq/data/TAIR10_NCBI/Sequence/WholeGenomeFasta/genome.fa -V gatkWT/wt.merge.sort.snps --filterExpression "QD<2.0||FS>60.0||MQ<40.0||MQRankSum<-12.5||ReadPosRankSum<-8.0" --filterName "LowQual" -o gatkWT/wt.merge.sort.flt.snps
+
+echo done

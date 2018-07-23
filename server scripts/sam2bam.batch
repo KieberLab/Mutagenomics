@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH --ntasks=1
+#SBATCH --array=0-33
+#SBATCH --job-name=mutscreen
+#SBATCH --mem=16000
+module add samtools
+
+# this is just for looking at alignment stats i think
+
+FILES=(/proj/kieberlb/users/hodgens/mutscreen/aligned/*)
+
+FILENAME=$(basename ${FILES[$SLURM_ARRAY_TASK_ID]})
+
+echo $FILENAME
+
+samtools view -b -o aligned.bam/$FILENAME.bam aligned/$FILENAME
+
+echo done
