@@ -16,6 +16,8 @@ ORGANISM=Arabidopsis_thaliana
 Rscript backgroundSNPscreen.R $BACKGROUND $ALLELERATIOHET $ALLELERATIOHOM $PIPELINE
 # Expects folder labeled "filtered" which contains mutant files
 
+# Requires: Java and snpEff installed. 
+
 ################# HOMOZYGOUS ################################
 
 FILELISTHOM=(mutsnps.hom/*)

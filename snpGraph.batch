@@ -4,6 +4,8 @@
 
 # Before running this, you should examine the snpEff output to determine which lines you need to remove from the analysis because they have SNPs in genes you already expect to be causative.
 
+# Requires: R callable from the command line with the igraph package installed
+
 ##################### Lines to Avoid ############################
 # Leave a single capital X in BADLINES if you don't want to cut anything out
 # if you want to cut lines out, separate the lines by spaces and write the exact names all in the same set of quotes
