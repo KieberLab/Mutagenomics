@@ -1,0 +1,1 @@
+extract snpEff library to this folder so that the binaries are on this level
