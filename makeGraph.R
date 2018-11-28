@@ -25,15 +25,17 @@ output <- NULL
 # Iterate over files, get per-locus mutation info
 
 for (eachNum in 1:length(filenames)){
-	currentMut <- read.delim(paste0(fileLoc,"/",filenames[eachNum]),header=TRUE)
+	currentMut <- read.delim(paste0(fileLoc,"/",filenames[eachNum]),header=TRUE, sep="\t")
 	currentName <- strsplit(filenames[eachNum],"\\.")[[1]][2]
 	currentMut$mutant <- currentName
 
 	if(sum(grepl("impact_HIGH",names(currentMut)))==0) {
 		currentMut$variants_impact_HIGH <- 0
-	} else if (sum(grepl("impact_MODERATE",names(currentMut)))==0) {
-		currentMut$variants_impact_moderate <- 0
-	} else if (sum(grepl("impact_LOW",names(currentMut)))==0) {
+	}
+	if (sum(grepl("impact_MODERATE",names(currentMut)))==0) {
+		currentMut$variants_impact_MODERATE <- 0
+	}
+	if (sum(grepl("impact_LOW",names(currentMut)))==0) {
 		currentMut$variants_impact_LOW <- 0
 	}
 	

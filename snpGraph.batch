@@ -1,4 +1,4 @@
-#!/usr/bin
+#!/bin/bash
 
 # run this in the folder above where the data files are so it only has to go down
 
@@ -15,9 +15,9 @@ BADLINES="X"
 
 ####################### Process Data for Graphs #######################
 echo making graph for hets
-Rscript ./makeGraph.R output.het $BADLINES
+/usr/local/bin/Rscript ./makeGraph.R output.het $BADLINES
 
 echo making graph for homs
-Rscript ./makeGraph.R output.hom $BADLINES
+/usr/local/bin/Rscript ./makeGraph.R output.hom $BADLINES
 
 echo done

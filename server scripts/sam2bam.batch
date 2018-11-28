@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --array=0-33
+#SBATCH --array=0-22
 #SBATCH --job-name=mutscreen
 #SBATCH --mem=16000
 module add samtools

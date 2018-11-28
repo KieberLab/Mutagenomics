@@ -1,4 +1,4 @@
-#!/usr/bin
+#!/bin/bash
 
 # The allele ratios here were determined by examining the distribution of allele ratios expected from a mixed population of reads
 # 0.3 captures most cases of allele ratios from a true heterozygous population
@@ -13,7 +13,7 @@ PIPELINE=gatk
 FILELIST=(filtered/*)
 ORGANISM=Arabidopsis_thaliana
 
-Rscript backgroundSNPscreen.R $BACKGROUND $ALLELERATIOHET $ALLELERATIOHOM $PIPELINE
+/usr/local/bin/Rscript backgroundSNPscreen.R $BACKGROUND $ALLELERATIOHET $ALLELERATIOHOM $PIPELINE
 # Expects folder labeled "filtered" which contains mutant files
 
 # Requires: Java and snpEff installed. 
@@ -32,8 +32,8 @@ do
 done
 
 # on windows, sed leaves lots of clutter flies. this cleans them up
-sed -i "1d" output.hom/*.txt
-sed -i  "1s/^.//" output.hom/*.txt
+find output.hom -type f -name "*.txt" -exec sed -i '' "1d" {} \;
+find output.hom -type f -name "*.txt" -exec sed -i '' "1s/^.//" {} \;
 rm output.hom/sed*
 
 ################# HETEROZYGOUS ################################
@@ -49,8 +49,8 @@ do
 done
 
 # on windows, sed leaves lots of clutter flies. this cleans them up
-sed -i "1d" output.het/*.txt
-sed -i  "1s/^.//" output.het/*.txt
+find output.het -type f -name "*.txt" -exec sed -i '' "1d" {} \;
+find output.het -type f -name "*.txt" -exec sed -i '' "1s/^.//" {} \;
 rm output.het/sed*
 
 

@@ -16,7 +16,7 @@ wtSnps <- wt[c("CHROM","POS","ID","REF","ALT","QUAL")]
 # Get filenames for mutant files
 filenames <- dir("filtered/")
 
-mutFileSearch <- grep("mut",filenames)
+mutFileSearch <- grep("vcf",filenames)
 
 mutFiles <- filenames[mutFileSearch]
 
