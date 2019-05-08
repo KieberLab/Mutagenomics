@@ -14,6 +14,15 @@ if (length(linesToRemove) == 1) {
 
 suppressPackageStartupMessages(library(igraph,quietly=TRUE))
 
+
+removeSingles <- function(currentObj) {
+	multDegree <- degree(currentObj)
+	multDegreeComp <- multDegree>1
+	vsToCut <- V(currentObj)[multDegreeComp]
+	reducedGraph <- induced_subgraph(currentObj,vsToCut)
+	return(reducedGraph)
+}
+
 # Get filenames
 files <- dir(fileLoc)
 filenames <- files[grep("genes.txt",files)]
@@ -78,29 +87,13 @@ booleanModerate <- output$variants_impact_HIGH>0 | output$variants_impact_MODERA
 vcfGraphInput <- vcfOutput
 vcfGraphInput$Identifier <- paste(vcfGraphInput$CHROM, vcfGraphInput$X0, vcfGraphInput$REF, vcfGraphInput$ALT,sep=".")
 vcfGraphObj <- graph_from_data_frame(vcfGraphInput[c(11,12,1,2,3,4,5,6,7,8,9,10)])
-multDegree <- degree(vcfGraphObj)
-multDegreeComp <- multDegree > 1
-vsToCut <- V(vcfGraphObj)[multDegreeComp]
-vcfGraphCut <- induced_subgraph(vcfGraphObj,vsToCut)
+vcfGraphCut <- removeSingles(vcfGraphObj)
 
 vcfGraphFrame <- as_data_frame(vcfGraphCut)
 vcfGraphName <- paste0(fileLoc,"/snpGraph.txt")
 write.table(vcfGraphFrame,file=vcfGraphName,sep="\t",quote=FALSE)
 
 # This gives me a graph of mutant-to-mutant connections.
-# There's far more random overlap than I expected but honestly that's dumb of me, that's the whole POINT of this project.
-# I need a metric for distinguishing sibs from non-sibs.
-# Carly's idea: compare number of overlaps to number of SNPs
-# I can think of a few ways to quantify these comparisons
-# 1: Do some up-front work pre-generating some thresholds based on Arabidopsis
-# 2: Do some on-the-fly simulation work for each sib pair
-
-# Notes: SNP density should be similar between sibs.
-# How similar?
-# What's the simulated 
-
-# multiple criteria?
-
 
 # Get the vertex IDs for vertices that represent mutant lines, not genes
 mutantLineVertices <- V(vcfGraphCut)[V(vcfGraphCut)$name %in% perLineSnps$Line]
@@ -211,19 +204,8 @@ for (eachNum in 1:2){
 	graphObjCollapsed <- graph_from_data_frame(currentGraphCollapsed[c(1,3,2,4,5,6,7)])
 	
 	# Get genes shared between lines from complete graph	
-	for (tempNum in 1:2){
-		currentObj <- list(graphObj,graphObjCollapsed)[[tempNum]]
-		multDegree <- degree(currentObj)
-		multDegreeComp <- multDegree>1
-		vsToCut <- V(currentObj)[multDegreeComp]
-		
-		# Use eachNum to decide which variable to write to
-		if (tempNum == 1) {
-			currentGraphShared <- induced_subgraph(currentObj,vsToCut)
-		} else {
-			currentGraphSharedCollapsed <- induced_subgraph(currentObj,vsToCut)
-		}
-	}
+	currentGraphShared <- removeSingles(graphObj)
+	currentGraphSharedCollapsed <- removeSingles(graphObjCollapsed)
 	
 	# Make data frames and write to file
 	currentGraphSharedFrame <- as_data_frame(currentGraphShared)
@@ -231,6 +213,27 @@ for (eachNum in 1:2){
 	currentGraphSharedCollapsedFrame <- as_data_frame(currentGraphSharedCollapsed)
 	currentGraphCollapsedName <- paste0(fileLoc,"/",currentName,".collapsed.txt")
 	currentGraphSharedCollapsedName <- paste0(fileLoc,"/",currentName,".shared.collapsed.txt")
+	
+	# Generate sib group networks and write to file
+	for (eachComponent in 1:sibComponents$no) {
+		currentComponentNames <- names(sibComponents$membership[sibComponents$membership==eachComponent])
+		
+		# subset graph for just these vertices and their first neighbors
+		egoSets <- make_ego_graph(graphObj,order=1,nodes=currentComponentNames,mode="all",mindist=0)
+		egoVertices <- NULL
+		for (eachEgo in 1:length(egoSets)) {
+			egoVertices <- c(egoVertices,names(V(egoSets[[eachEgo]])))
+		}
+		egoVertices <- unique(egoVertices)
+		egoGraph <- induced_subgraph(graphObj,egoVertices)
+		egoGraphCut <- removeSingles(egoGraph)
+		
+		egoGraphName <- paste0(fileLoc,"/","siblingset.",eachComponent,".",currentName,".txt")
+		egoGraphCutName <- paste0(fileLoc,"/","siblingset.",eachComponent,".",currentName,".shared.txt")
+		
+		write.table(egoGraph,file=egoGraphName,sep="\t",quote=FALSE,row.names=FALSE)
+		write.table(egoGraphCut,file=egoGraphCutName,sep="\t",quote=FALSE,row.names=FALSE)
+	}
 	
 	# Remove bad lines from complete graph
 	# TODO: integrate collapsed graphs into this section
@@ -247,10 +250,8 @@ for (eachNum in 1:2){
 		}
 		
 		# Get genes shared between lines from graph with bad lines removed
-		cutDegree <- degree(cutObj)
-		cutDegreeComp <- cutDegree>1
-		vsToCut <- V(cutObj)[cutDegreeComp]
-		currentGraphCutShared <- induced_subgraph(cutObj,vsToCut)
+		currentGraphCutShared <- removeSingles(cutObj)
+		
 		currentGraphCutSharedFrame <- as_data_frame(currentGraphCutShared)
 		currentGraphCutSharedName <- paste0(fileLoc,"/",currentName,".linesRemoved.shared.txt")		
 		
