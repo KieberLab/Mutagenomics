@@ -4,7 +4,7 @@
 
 arguments <- commandArgs(trailingOnly=TRUE)
 fileLoc <- arguments[1]
-siblingThreshold <- arguments[2]
+siblingThreshold <- as.numeric(arguments[2])
 linesToRemove <- arguments[3:length(arguments)]
 if (length(linesToRemove) == 1) {
 	if (linesToRemove == "X") {
@@ -15,9 +15,12 @@ if (length(linesToRemove) == 1) {
 suppressPackageStartupMessages(library(igraph,quietly=TRUE))
 
 
-removeSingles <- function(currentObj) {
+removeSingles <- function(currentObj,vsToKeep=NULL) {
+	# currentObj = igraph graph object
+	# vsToKeep = character list of vertex names you want to keep
 	multDegree <- degree(currentObj)
 	multDegreeComp <- multDegree>1
+	multDegreeComp[names(multDegreeComp) %in% as.character(vsToKeep)] <- TRUE
 	vsToCut <- V(currentObj)[multDegreeComp]
 	reducedGraph <- induced_subgraph(currentObj,vsToCut)
 	return(reducedGraph)
@@ -218,21 +221,29 @@ for (eachNum in 1:2){
 	for (eachComponent in 1:sibComponents$no) {
 		currentComponentNames <- names(sibComponents$membership[sibComponents$membership==eachComponent])
 		
+		# It's possible a putative sibling has no High impact SNPs
+		# Need to add them back in
+		missingLines <- as.character(perLineSnps$Line[! perLineSnps$Line %in% names(V(graphObj))])
+		graphObjWithMissing <- add_vertices(graphObj,length(missingLines),name=missingLines)
+		
 		# subset graph for just these vertices and their first neighbors
-		egoSets <- make_ego_graph(graphObj,order=1,nodes=currentComponentNames,mode="all",mindist=0)
+		egoSets <- make_ego_graph(graphObjWithMissing,order=1,nodes=currentComponentNames,mode="all",mindist=0)
 		egoVertices <- NULL
 		for (eachEgo in 1:length(egoSets)) {
 			egoVertices <- c(egoVertices,names(V(egoSets[[eachEgo]])))
 		}
 		egoVertices <- unique(egoVertices)
-		egoGraph <- induced_subgraph(graphObj,egoVertices)
-		egoGraphCut <- removeSingles(egoGraph)
+		egoGraph <- induced_subgraph(graphObjWithMissing,egoVertices)
+		egoGraphCut <- removeSingles(egoGraph,as.character(perLineSnps$Line))
 		
 		egoGraphName <- paste0(fileLoc,"/","siblingset.",eachComponent,".",currentName,".txt")
 		egoGraphCutName <- paste0(fileLoc,"/","siblingset.",eachComponent,".",currentName,".shared.txt")
 		
-		write.table(egoGraph,file=egoGraphName,sep="\t",quote=FALSE,row.names=FALSE)
-		write.table(egoGraphCut,file=egoGraphCutName,sep="\t",quote=FALSE,row.names=FALSE)
+		egoGraphFrame <- as_data_frame(egoGraph)
+		egoGraphCutFrame <- as_data_frame(egoGraphCut)
+		
+		write.table(egoGraphFrame,file=egoGraphName,sep="\t",quote=FALSE,row.names=FALSE)
+		write.table(egoGraphCutFrame,file=egoGraphCutName,sep="\t",quote=FALSE,row.names=FALSE)
 	}
 	
 	# Remove bad lines from complete graph

@@ -17,9 +17,9 @@ BADLINES="X"
 
 ####################### Process Data for Graphs #######################
 echo making graph for hets
-/usr/local/bin/Rscript ./makeGraph.R output.het $RATIO $BADLINES
+Rscript ./makeGraph.R output.het $RATIO $BADLINES
 
 echo making graph for homs
-/usr/local/bin/Rscript ./makeGraph.R output.hom $RATIO $BADLINES
+Rscript ./makeGraph.R output.hom $RATIO $BADLINES
 
 echo done
