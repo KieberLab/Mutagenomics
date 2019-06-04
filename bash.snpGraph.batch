@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# run this in the folder above where the data files are so it only has to go down
+
+# Before running this, you should examine the snpEff output to determine which lines you need to remove from the analysis because they have SNPs in genes you already expect to be causative.
+
+# Requires: R callable from the command line with the igraph package installed
+
+RATIO=0.2
+
+##################### Lines to Avoid ############################
+# Leave a single capital X in BADLINES if you don't want to cut anything out
+# if you want to cut lines out, separate the lines by spaces and write the exact names all in the same set of quotes
+# ex: BADLINES="mut1 mut2 mut3"
+BADLINES="X"
+
+
+####################### Process Data for Graphs #######################
+echo making graph for hets
+/usr/local/bin/Rscript ./makeGraph.R output.het $RATIO $BADLINES
+
+echo making graph for homs
+/usr/local/bin/Rscript ./makeGraph.R output.hom $RATIO $BADLINES
+
+echo done

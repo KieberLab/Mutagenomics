@@ -1,0 +1,7 @@
+#!/bin/bash
+# Run this to automatically generate a cytoscape view of the network
+# Requires: R with the RCy3 library installed, Cytoscape
+
+# /Applications/Cytoscape_v3.6.1/cytoscape.sh
+
+/usr/local/bin/Rscript ./snpCyto.R

@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# The allele ratios here were determined by examining the distribution of allele ratios expected from a mixed population of reads
+# 0.3 captures most cases of allele ratios from a true heterozygous population
+# 0.7 captures most cases where 3 true homozygous samples are mixed with one contaminant sample
+# background snp file is the vcf file containing SNPs detected in the pre-mutagenesis genotype
+# "organism" is the snpEff formatted string for your species of interest
+
+BACKGROUND=wt.gatk.snps.vcf
+ALLELERATIOHET=0.3
+ALLELERATIOHOM=0.7
+PIPELINE=gatk
+FILELIST=(filtered/*)
+ORGANISM=Arabidopsis_thaliana
+
+/usr/local/bin/Rscript backgroundSNPscreen.R $BACKGROUND $ALLELERATIOHET $ALLELERATIOHOM $PIPELINE
+# Expects folder labeled "filtered" which contains mutant files
+
+# Requires: Java and snpEff installed. 
+
+################# HOMOZYGOUS ################################
+
+FILELISTHOM=(mutsnps.hom/*)
+num=${#FILELISTHOM[@]}
+num=$(($num-1))
+
+for number in $(seq 0 $num)
+do
+	FILENAME=$(basename "${FILELISTHOM[$number]}")
+	echo starting sample $FILENAME
+	/usr/local/bin/java -jar snpEff/snpEff.jar $ORGANISM mutsnps.hom/$FILENAME -s output.hom/$FILENAME.summary.html > output.hom/$FILENAME.ann
+done
+
+# on windows, sed leaves lots of clutter flies. this cleans them up
+find output.hom -type f -name "*.txt" -exec sed -i '' "1d" {} \;
+find output.hom -type f -name "*.txt" -exec sed -i '' "1s/^.//" {} \;
+rm output.hom/sed*
+
+################# HETEROZYGOUS ################################
+FILELISTHET=(mutsnps.het/*)
+num=${#FILELISTHET[@]}
+num=$(($num-1))
+
+for number in $(seq 0 $num)
+do
+	FILENAME=$(basename "${FILELISTHET[$number]}")
+	echo starting sample $FILENAME
+	/usr/local/bin/java -jar snpEff/snpEff.jar $ORGANISM mutsnps.het/$FILENAME -s output.het/$FILENAME.summary.html > output.het/$FILENAME.ann
+done
+
+# on windows, sed leaves lots of clutter flies. this cleans them up
+find output.het -type f -name "*.txt" -exec sed -i '' "1d" {} \;
+find output.het -type f -name "*.txt" -exec sed -i '' "1s/^.//" {} \;
+rm output.het/sed*
+
+
+echo done

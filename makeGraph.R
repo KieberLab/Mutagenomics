@@ -1,7 +1,7 @@
 #vertices are mutants and genes
 
 #edge between mutant and gene if MODERATE or HIGH priority mutation observed
-
+options(stringsAsFactors=FALSE)
 arguments <- commandArgs(trailingOnly=TRUE)
 fileLoc <- arguments[1]
 siblingThreshold <- as.numeric(arguments[2])
@@ -201,11 +201,34 @@ for (eachNum in 1:2){
 			currentGraphCollapsed$mutant[eachRow] <- sibMap$Group[sibMap$Line==currentGraph$mutant[eachRow]]
 		}
 	}	
-		
+
+	# if not, check currentGraphCollapsed for a line that goes from that gene to that sib group, and remove it
+
 	# Set up graph objects to manipulate
 	graphObj <- graph_from_data_frame(currentGraph[c(1,3,2,4,5,6,7)])
 	graphObjCollapsed <- graph_from_data_frame(currentGraphCollapsed[c(1,3,2,4,5,6,7)])
 	
+	# For collapsed graph, remove edges from genes to sib group that aren't present in all of the sibs in that group
+	groupNames <- names(V(graphObjCollapsed))
+	
+	for (eachGroup in sibMap$Group) {
+		# Get vertex ID for the current group
+		currentGroup <- V(graphObjCollapsed)[groupNames==eachGroup]
+		
+		# Get all the genes in that sib group
+		groupNeighbors <- neighbors(graphObjCollapsed,as.character(eachGroup),mode="all")
+		# For each gene, check that all of the sibs are in its neighbors
+		listOfSibs <- sibMap$Line[sibMap$Group==eachGroup]
+		for (eachSnp in groupNeighbors) {
+			geneNeighbors <- neighbors(graphObj,eachSnp,mode="all")
+			if (sum(names(geneNeighbors) %in% listOfSibs) < length(listOfSibs)) {
+				graphObjCollapsed <- delete_edges(graphObjCollapsed,E(graphObjCollapsed,c(eachSnp,currentGroup),directed=FALSE))
+			}
+		}
+	}
+
+		
+
 	# Get genes shared between lines from complete graph	
 	currentGraphShared <- removeSingles(graphObj)
 	currentGraphSharedCollapsed <- removeSingles(graphObjCollapsed)
