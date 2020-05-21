@@ -5,7 +5,8 @@ options(stringsAsFactors=FALSE)
 arguments <- commandArgs(trailingOnly=TRUE)
 fileLoc <- arguments[1]
 siblingThreshold <- as.numeric(arguments[2])
-linesToRemove <- arguments[3:length(arguments)]
+sibDetectThreshold <- as.numeric(arguments[3])
+linesToRemove <- arguments[4:length(arguments)]
 if (length(linesToRemove) == 1) {
 	if (linesToRemove == "X") {
 		linesToRemove <- NULL
@@ -168,7 +169,7 @@ for (eachRow in 1:nrow(mut2mut) ){
 # Generate ratio of shared to all SNPs
 mut2mut$fromRatio <- mut2mut$sharedSnps / mut2mut$fromSnps
 mut2mut$toRatio <- mut2mut$sharedSnps / mut2mut$toSnps
-putativeSibs <- mut2mut[mut2mut$fromRatio > siblingThreshold | mut2mut$toRatio > siblingThreshold,]
+putativeSibs <- mut2mut[(mut2mut$fromRatio > siblingThreshold & mut2mut$fromSnps > sibDetectThreshold) | (mut2mut$toRatio > siblingThreshold & mut2mut$toSnps > sibDetectThreshold),]
 # I struggled with whether to make the above line an AND or an OR condition.
 # My thinking with AND initially was I didn't want spurious sibling inferences so I wanted to make sure it was a good call
 # But then I thought, maybe one of the sibling partners wasn't sequenced well.
@@ -211,7 +212,9 @@ for (eachNum in 1:2){
 	# For collapsed graph, remove edges from genes to sib group that aren't present in all of the sibs in that group
 	groupNames <- names(V(graphObjCollapsed))
 	
-	for (eachGroup in sibMap$Group) {
+	presentGroups <- sibMap$Group[sibMap$Group %in% groupNames]
+	
+	for (eachGroup in presentGroups) {
 		# Get vertex ID for the current group
 		currentGroup <- V(graphObjCollapsed)[groupNames==eachGroup]
 		

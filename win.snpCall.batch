@@ -6,7 +6,7 @@
 # background snp file is the vcf file containing SNPs detected in the pre-mutagenesis genotype
 # "organism" is the snpEff formatted string for your species of interest
 
-BACKGROUND=wt.gatk.snps.vcf
+BACKGROUND=wt.aln.vcf
 ALLELERATIOHET=0.3
 ALLELERATIOHOM=0.7
 PIPELINE=gatk
@@ -16,7 +16,7 @@ ORGANISM=Arabidopsis_thaliana
 Rscript backgroundSNPscreen.R $BACKGROUND $ALLELERATIOHET $ALLELERATIOHOM $PIPELINE
 # Expects folder labeled "filtered" which contains mutant files
 
-# Requires: Java and snpEff installed. 
+# Requires: Java and snpEff installed.
 
 ################# HOMOZYGOUS ################################
 
@@ -32,8 +32,8 @@ do
 done
 
 # on windows, sed leaves lots of clutter flies. this cleans them up
-find output.hom -type f -name "*.txt" -exec sed -i '' "1d" {} \;
-find output.hom -type f -name "*.txt" -exec sed -i '' "1s/^.//" {} \;
+sed -i "1d" output.hom/*.txt
+sed -i  "1s/^.//" output.hom/*.txt
 rm output.hom/sed*
 
 ################# HETEROZYGOUS ################################
@@ -49,8 +49,8 @@ do
 done
 
 # on windows, sed leaves lots of clutter flies. this cleans them up
-find output.het -type f -name "*.txt" -exec sed -i '' "1d" {} \;
-find output.het -type f -name "*.txt" -exec sed -i '' "1s/^.//" {} \;
+sed -i "1d" output.het/*.txt
+sed -i  "1s/^.//" output.het/*.txt
 rm output.het/sed*
 
 

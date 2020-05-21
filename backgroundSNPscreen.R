@@ -9,7 +9,7 @@ alleleThresholdHom <- as.numeric(args[3])
 pipeline <- args[4]
 
 # Read in WT data
-wt <- read.delim(WTfile,comment.char="#")
+wt <- read.delim(WTfile,comment.char="#",header=FALSE)
 names(wt) <- c("CHROM","POS","ID","REF","ALT","QUAL","FILTER","INFO","FORMAT","otherinfo")
 wtSnps <- wt[c("CHROM","POS","ID","REF","ALT","QUAL")]
 
@@ -25,7 +25,13 @@ mutFiles <- filenames[mutFileSearch]
 
 # Iterate over mutant files, remove background snps
 for (eachName in mutFiles) {
-	currentMut <- read.delim(paste0("filtered/",eachName),comment.char="#")
+	currentMut <- read.delim(paste0("filtered/",eachName),comment.char="#",header=FALSE)
+	
+	dupRows <- duplicated(currentMut[c(1,2,4,5)])
+	
+	currentMut <- currentMut[!dupRows,]
+
+	
 	outputNameHet <- paste0("mutsnps.het/het.",eachName,".txt")
 	outputNameHom <- paste0("mutsnps.hom/hom.",eachName,".txt")
 	outputTableHet <- NULL
@@ -36,15 +42,14 @@ for (eachName in mutFiles) {
 		currentLine <- currentMut[eachLine,]
 		
 		# Check for presence in WT background
-		wtCut <- wt[currentLine$CHROM %in% wt$CHROM & currentLine$POS %in% wt$POS,]
+		#wtCut <- wt[(currentLine$CHROM %in% wt$CHROM & currentLine$POS %in% wt$POS),]
+		wtCut <- wt[( wt$CHROM %in% currentLine$CHROM & wt$POS %in% currentLine$POS),]
 		if (dim(wtCut)[1] == 0) {
-			
 			# check EMS mutation
 			if ((currentLine$REF == "G" & currentLine$ALT == "A") | (currentLine$REF == "C" & currentLine$ALT == "T") ) {
 				# check quality score
 				if (currentLine$FILTER == "PASS") {
 					# check allelic depth
-					
 					if (pipeline == "samtools") {
 						infoSet <- strsplit(currentLine$otherinfo,":")[[1]]
 						ADset <- as.numeric(strsplit(infoSet[5],",")[[1]])
