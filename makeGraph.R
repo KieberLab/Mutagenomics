@@ -95,7 +95,7 @@ vcfGraphCut <- removeSingles(vcfGraphObj)
 
 vcfGraphFrame <- as_data_frame(vcfGraphCut)
 vcfGraphName <- paste0(fileLoc,"/snpGraph.txt")
-write.table(vcfGraphFrame,file=vcfGraphName,sep="\t",quote=FALSE)
+write.table(vcfGraphFrame,file=vcfGraphName,sep="\t",quote=FALSE,row.names=FALSE)
 
 # This gives me a graph of mutant-to-mutant connections.
 
